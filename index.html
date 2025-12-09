@@ -107,9 +107,9 @@
         <h2 class="form-text">- FIE</h2>
         <input type="hidden" id="email" name="email" required >
         <label for="phoneNumber">Customer Numbers:</label>
-        <input type="tel" id="phoneNumber" name="PHONE NUMBER" required placeholder="e.g., 0234567890"><br>
+        <input type="tel" id="phoneNumber" name="NUMBER" required placeholder="e.g., 0234567890"><br>
         <label for="bundle">Select Packages:</label>
-        <select id="bundle" name="BUNDLE" onchange="updateAmount()">
+        <select id="bundle" name="Packages (GB)" onchange="updateAmount()">
             <option value="0">Select Here</option>
             <option value="1">1GB - GHS5.50</option>
             <option value="2">2GB - GHS12.0</option>
@@ -137,7 +137,7 @@
     <script>
         var prices = {
     "0": 0,
-    "1": 6.2,
+    "1": 5.2,
     "2": 12.2,
     "3": 18.3,
     "4": 24.4,
@@ -174,7 +174,7 @@ document.getElementById("paymentForm").addEventListener("submit", function(event
 
     var handler = PaystackPop.setup({
         key: 'pk_live_fb405d2702a00868ba424f73b9148b7aad07b2b0', // Replace with your public key
-        email: email,
+        email: "no-reply@gmail.com",
         amount: amount,
         currency: 'GHS',
         ref: 'KYEKYEKU-' + Math.floor((Math.random() * 1000000000) + 1),
