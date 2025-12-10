@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Portal - Orders</title>
+<!-- Include SheetJS library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+/* ===== General Reset & Fonts ===== */
+body {
+  font-family: 'Inter', 'Segoe UI', Roboto, Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+  color: #333;
+}
+
+/* ===== Container ===== */
+.container {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+/* ===== Heading ===== */
+h1 {
+  text-align: center;
+  font-weight: 700;
+  font-size: 2.2rem;
+  margin-bottom: 40px;
+  color: #1a1a1a;
+  letter-spacing: 1px;
+}
+
+/* ===== Controls ===== */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.controls select,
+.controls input[type="date"],
+.controls button {
+  padding: 12px 18px;
+  font-size: 16px;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  outline: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.controls select:focus,
+.controls input[type="date"]:focus {
+  border-color: #4caf50;
+  box-shadow: 0 4px 20px rgba(76, 175, 80, 0.2);
+}
+
+.controls button {
+  background: linear-gradient(135deg, #6a11cb, #2575fc);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.controls button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+/* ===== Table Styling ===== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+}
+
+th, td {
+  padding: 14px 18px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+  transition: all 0.2s ease;
+}
+
+th {
+  background: linear-gradient(90deg, #6a11cb, #2575fc);
+  color: #fff;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+tbody tr:hover {
+  background: #f0f4ff;
+  transform: scale(1.01);
+}
+
+/* ===== Download Button ===== */
+.download-btn {
+  display: block;
+  margin: 25px auto 0;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ff416c, #ff4b2b);
+  color: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.download-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .controls {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  table th, table td {
+    padding: 12px 10px;
+  }
+}
+</style>
+
+</head>
+<body>
+
+<h1>Admin Orders Portal</h1>
+
+<div class="controls">
+  <select id="sheetName">
+    <option value="MTN">MTN</option>
+  </select>
+
+  <input type="date" id="startDate">
+  <input type="date" id="endDate">
+  <button onclick="fetchOrders()">Load Orders</button>
+</div>
+
+<div id="tableContainer"></div>
+<button class="download-btn" onclick="downloadExcel()">Download Excel</button>
+
+<script>
+let ordersData = [];
+
+function fetchOrders() {
+  const sheet = document.getElementById("sheetName").value;
+  const startDate = document.getElementById("startDate").value;
+  const endDate = document.getElementById("endDate").value;
+
+  if (!startDate || !endDate) {
+    alert("Please select both start and end dates.");
+    return;
+  }
+
+  const url = `https://script.google.com/macros/s/AKfycbwV0HesZ9mQJZqOToqrfJ1D1FUidGSzXFUI_R-nbWHxqXa-Ab8MuJLrcRJY5mSM4a5q0A/exec?sheetName=${sheet}&startDate=${startDate}&endDate=${endDate}`;
+
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      if (data.error) {
+        alert(data.error);
+        return;
+      }
+      ordersData = data;
+      renderTable(data);
+    })
+    .catch(err => console.error(err));
+}
+
+function renderTable(data) {
+  const container = document.getElementById("tableContainer");
+  if (!data || data.length < 2) {
+    container.innerHTML = "<p>No data found for selected range.</p>";
+    return;
+  }
+
+  let html = "<table><thead><tr>";
+  data[0].forEach(header => html += `<th>${header}</th>`);
+  html += "</tr></thead><tbody>";
+
+  for (let i = 1; i < data.length; i++) {
+    html += "<tr>";
+    data[i].forEach(cell => html += `<td>${cell}</td>`);
+    html += "</tr>";
+  }
+
+  html += "</tbody></table>";
+  container.innerHTML = html;
+}
+
+function downloadExcel() {
+  if (!ordersData || ordersData.length < 2) {
+    alert("No data to download.");
+    return;
+  }
+
+  // Convert array of arrays to worksheet
+  const ws = XLSX.utils.aoa_to_sheet(ordersData);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Orders");
+
+  // Save Excel file
+  XLSX.writeFile(wb, "Orders.xlsx");
+}
+</script>
+
+</body>
+</html>
